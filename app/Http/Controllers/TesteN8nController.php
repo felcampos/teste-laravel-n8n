@@ -34,7 +34,7 @@ class TesteN8nController extends Controller
         $isProducao = $ambiente === 'production';
         
         // URLs base do n8n
-        $baseUrl = config('n8n.base_url', 'http://localhost:5678');
+        $baseUrl = config('n8n.base_url', 'https://webhook.felipecampos.dev');
         
         return [
             'ambiente' => $ambiente,

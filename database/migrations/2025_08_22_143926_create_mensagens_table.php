@@ -13,7 +13,25 @@ return new class extends Migration
     {
         Schema::create('mensagens', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            
+            // Conteúdo da mensagem
+            $table->text('conteudo');
+            $table->enum('tipo', ['usuario', 'ia']); // Quem enviou a mensagem
+            
+            // Dados do WhatsApp / n8n
+            $table->string('whatsapp_id')->nullable(); // ID da mensagem no WhatsApp
+            $table->string('telefone'); // Telefone que enviou/recebeu
+            
+            
             $table->timestamps();
+            
+            // Índices para consultas eficientes
+            $table->index('user_id');
+            $table->index('telefone');
+            $table->index('tipo');
+            $table->index(['user_id', 'created_at']);
+            $table->index(['telefone', 'created_at']);
         });
     }
 

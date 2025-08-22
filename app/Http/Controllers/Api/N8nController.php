@@ -95,7 +95,7 @@ class N8nController extends Controller
     }
     
     // URL base do seu n8n local
-    private $n8nUrl = 'http://localhost:5678';
+    private $n8nUrl = 'https://webhook.felipecampos.dev';
     
     /**
      * Receber dados do n8n via webhook
@@ -222,7 +222,7 @@ class N8nController extends Controller
     {
         try {
             // URL do webhook do n8n (substitua pela sua)
-            $webhookUrl = 'http://localhost:5678/webhook/receber-laravel';
+            $webhookUrl = 'https://webhook.felipecampos.dev/webhook/receber-laravel';
             
             // Dados de teste
             $dadosTeste = [
@@ -275,7 +275,7 @@ class N8nController extends Controller
     {
         try {
             // URL do webhook do n8n
-            $webhookUrl = 'http://localhost:5678/webhook/receber-laravel';
+            $webhookUrl = 'https://webhook.felipecampos.dev/webhook/receber-laravel';
             
             // Buscar usuários (exemplo)
             $usuarios = [
