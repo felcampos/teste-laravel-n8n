@@ -33,4 +33,7 @@ return [
         'Content-Type' => 'application/json',
         'User-Agent' => 'Laravel-App/' . app()->version(),
     ],
+
+    // Token de autenticação para APIs
+    'api_token' => env('N8N_API_TOKEN', 'token_padrao_inseguro'),
 ];

@@ -10,7 +10,6 @@ use App\Services\WhatsAppService;
 
 class N8nController extends Controller
 {
-    
     /**
      * Processar dados de usuário vindos do n8n
      */

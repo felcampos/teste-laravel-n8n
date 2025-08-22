@@ -18,9 +18,6 @@ Route::get('/user', function (Request $request) {
 // Grupo de rotas para integração com n8n
 Route::prefix('n8n')->group(function () {
     
-    // Rota para RECEBER dados do n8n (webhook)
-    // O n8n vai chamar esta URL quando quiser enviar dados
-    Route::post('/webhook', [N8nController::class, 'receberDados']);
     
     // Rota para ENVIAR dados para o n8n
     // Você chama esta rota quando quiser enviar dados para o n8n
@@ -28,11 +25,19 @@ Route::prefix('n8n')->group(function () {
     
     // Rota para testar se está funcionando
     Route::get('/teste', [N8nController::class, 'teste']);
-    
-    // Rota para o n8n buscar dados de usuários (exemplo)
-    Route::get('/usuarios', [N8nController::class, 'obterUsuarios']);
-    
+
     // Rotas de teste para integração
     Route::get('/testar-envio', [N8nController::class, 'testarEnvio']);
     Route::get('/testar-envio-usuarios', [N8nController::class, 'testarEnvioUsuarios']);
+    
+    // Rotas protegidas por autenticação via token (as rotas que o n8n vai chamar no laravel)
+    Route::middleware('n8n.auth')->group(function () { 
+        // Rota para o n8n buscar dados de usuários (exemplo)
+        Route::get('/usuarios', [N8nController::class, 'obterUsuarios']);
+
+        // Rota para RECEBER dados do n8n (webhook)
+        // O n8n vai chamar esta URL quando quiser enviar dados
+        Route::post('/webhook', [N8nController::class, 'receberDados']);
+        
+    });
 });
