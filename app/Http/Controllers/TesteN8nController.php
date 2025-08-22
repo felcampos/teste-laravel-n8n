@@ -41,10 +41,10 @@ class TesteN8nController extends Controller
             'is_producao' => $isProducao,
             'base_url' => $baseUrl,
             'webhook_url' => $isProducao 
-                ? $baseUrl . '/webhook/n8n'  // Produção
-                : $baseUrl . '/webhook-test/n8n',  // Teste/Local
-            'webhook_teste' => $baseUrl . '/webhook-test/n8n',
-            'webhook_producao' => $baseUrl . '/webhook/n8n',
+                ? $baseUrl . '/webhook/laravel'  // Produção
+                : $baseUrl . '/webhook-test/laravel',  // Teste/Local
+            'webhook_teste' => $baseUrl . '/webhook-test/laravel',
+            'webhook_producao' => $baseUrl . '/webhook/laravel',
         ];
     }
     

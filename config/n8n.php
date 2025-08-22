@@ -15,8 +15,8 @@ return [
 
     // Webhooks por ambiente
     'webhooks' => [
-        'teste' => env('N8N_WEBHOOK_TESTE', '/webhook-test/n8n'),
-        'producao' => env('N8N_WEBHOOK_PRODUCAO', '/webhook/n8n'),
+        'teste' => env('N8N_WEBHOOK_TESTE', '/webhook-test/laravel'),
+        'producao' => env('N8N_WEBHOOK_PRODUCAO', '/webhook/laravel'),
     ],
 
     // Timeout padrão para requisições
