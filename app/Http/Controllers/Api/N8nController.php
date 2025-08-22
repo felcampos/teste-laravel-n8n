@@ -11,6 +11,125 @@ use App\Services\WhatsAppService;
 class N8nController extends Controller
 {
     /**
+     * Processar mensagem do usuário (criar usuário se não existir + salvar mensagem)
+     */
+    public function processarMensagem(Request $request)
+    {
+        try {
+            // Validar dados de entrada
+            $request->validate([
+                'nome' => 'required|string|max:255',
+                'telefone' => 'required|string|max:20',
+                'mensagem' => 'required|string'
+            ]);
+
+            $nome = $request->input('nome');
+            $telefone = $request->input('telefone');
+            $mensagem = $request->input('mensagem');
+            $whatsappId = $request->input('whatsapp_id'); // ID da mensagem no WhatsApp
+
+            // Normalizar telefone
+            $telefoneNormalizado = preg_replace('/[^\d+]/', '', $telefone);
+            if (!str_starts_with($telefoneNormalizado, '+') && strlen($telefoneNormalizado) === 11) {
+                $telefoneNormalizado = '+55' . $telefoneNormalizado;
+            }
+
+            // Verificar se usuário existe
+            $usuario = \App\Models\User::where('telefone', $telefoneNormalizado)->first();
+            
+            $usuarioNovo = false;
+
+            if (!$usuario) {
+                // Criar novo usuário
+                $usuario = \App\Models\User::create([
+                    'name' => $nome,
+                    'telefone' => $telefoneNormalizado,
+                    'password' => bcrypt('temp_' . uniqid()), // Senha temporária
+                ]);
+                $usuarioNovo = true;
+                
+                Log::info('Novo usuário criado via WhatsApp', [
+                    'usuario_id' => $usuario->id,
+                    'nome' => $nome,
+                    'telefone' => $telefoneNormalizado
+                ]);
+            } else {
+                // Atualizar nome se diferente (caso tenha mudado no WhatsApp)
+                if ($usuario->name !== $nome && !empty($nome)) {
+                    $usuario->update(['name' => $nome]);
+                }
+                
+                Log::info('Usuário existente encontrado', [
+                    'usuario_id' => $usuario->id,
+                    'nome_atual' => $usuario->name,
+                    'nome_recebido' => $nome
+                ]);
+            }
+
+            // Salvar mensagem do usuário
+            $mensagemSalva = \App\Models\Mensagem::create([
+                'user_id' => $usuario->id,
+                'conteudo' => $mensagem,
+                'tipo' => 'usuario',
+                'telefone' => $telefoneNormalizado,
+                'whatsapp_id' => $whatsappId,
+            ]);
+
+            // Obter estatísticas do usuário
+            $estatisticas = $usuario->getEstatisticasConversa();
+
+            Log::info('Mensagem processada com sucesso', [
+                'usuario_id' => $usuario->id,
+                'mensagem_id' => $mensagemSalva->id,
+                'usuario_novo' => $usuarioNovo,
+                'total_mensagens' => $estatisticas['total_mensagens']
+            ]);
+
+            return response()->json([
+                'status' => 'sucesso',
+                'usuario_novo' => $usuarioNovo,
+                'usuario' => [
+                    'id' => $usuario->id,
+                    'nome' => $usuario->name,
+                    'telefone' => $usuario->telefone,
+                    'criado_em' => $usuario->created_at->format('Y-m-d H:i:s'),
+                    'atualizado_em' => $usuario->updated_at->format('Y-m-d H:i:s')
+                ],
+                'mensagem' => [
+                    'id' => $mensagemSalva->id,
+                    'conteudo' => $mensagemSalva->conteudo,
+                    'tipo' => $mensagemSalva->tipo,
+                    'whatsapp_id' => $mensagemSalva->whatsapp_id,
+                    'criada_em' => $mensagemSalva->created_at->format('Y-m-d H:i:s')
+                ],
+                'estatisticas' => $estatisticas,
+                'acao_realizada' => $usuarioNovo ? 'usuario_criado_e_mensagem_salva' : 'mensagem_salva'
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'erro',
+                'mensagem' => 'Dados de entrada inválidos',
+                'erros' => $e->validator->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao processar mensagem do usuário', [
+                'erro' => $e->getMessage(),
+                'linha' => $e->getLine(),
+                'arquivo' => $e->getFile(),
+                'dados_recebidos' => $request->all()
+            ]);
+
+            return response()->json([
+                'status' => 'erro',
+                'mensagem' => 'Erro interno do servidor',
+                'detalhes' => config('app.debug') ? $e->getMessage() : 'Erro interno'
+            ], 500);
+        }
+    }
+    
+    /**
      * Processar dados de usuário vindos do n8n
      */
     private function processarDadosUsuario(array $dados): array
