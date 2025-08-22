@@ -10,12 +10,6 @@ use App\Services\WhatsAppService;
 
 class N8nController extends Controller
 {
-    protected N8nUserService $userService;
-    
-    public function __construct(N8nUserService $userService)
-    {
-        $this->userService = $userService;
-    }
     
     /**
      * Processar dados de usuário vindos do n8n
