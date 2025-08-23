@@ -90,6 +90,7 @@ class N8nController extends Controller
                     'id' => $usuario->id,
                     'nome' => $usuario->name,
                     'telefone' => $usuario->telefone,
+                    'email' => $usuario->email,
                     'criado_em' => $usuario->created_at->format('Y-m-d H:i:s'),
                     'atualizado_em' => $usuario->updated_at->format('Y-m-d H:i:s')
                 ],
