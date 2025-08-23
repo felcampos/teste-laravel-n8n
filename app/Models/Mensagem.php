@@ -15,7 +15,6 @@ class Mensagem extends Model
         'user_id',
         'conteudo',
         'tipo',
-        'whatsapp_id',
         'telefone',
     ];
 
@@ -70,14 +69,12 @@ class Mensagem extends Model
         int $userId,
         string $conteudo,
         string $telefone,
-        string $whatsappId = null
     ): self {
         return self::create([
             'user_id' => $userId,
             'conteudo' => $conteudo,
             'tipo' => 'usuario',
             'telefone' => $telefone,
-            'whatsapp_id' => $whatsappId,
         ]);
     }
 

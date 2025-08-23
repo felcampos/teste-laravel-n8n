@@ -18,7 +18,6 @@ class WhatsAppService
             $telefone = $this->normalizarTelefone($dados['telefone'] ?? $dados['from'] ?? '');
             $conteudo = $dados['mensagem'] ?? $dados['message'] ?? $dados['text'] ?? '';
             $nome = $dados['nome'] ?? $dados['name'] ?? $dados['pushname'] ?? null;
-            $whatsappId = $dados['id'] ?? $dados['messageId'] ?? null;
 
             if (!$telefone || !$conteudo) {
                 throw new \InvalidArgumentException('Telefone e mensagem são obrigatórios');
@@ -32,7 +31,6 @@ class WhatsAppService
                 $usuario->id,
                 $conteudo,
                 $telefone,
-                $whatsappId
             );
 
             // Gerar resposta da IA (aqui você pode integrar com OpenAI, etc.)
@@ -154,7 +152,6 @@ class WhatsAppService
                 'tipo' => $mensagem->tipo,
                 'usuario' => $mensagem->user->name,
                 'timestamp' => $mensagem->created_at->format('d/m/Y H:i'),
-                'whatsapp_id' => $mensagem->whatsapp_id
             ];
         })->toArray();
     }

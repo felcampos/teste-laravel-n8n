@@ -26,7 +26,6 @@ class N8nController extends Controller
             $nome = $request->input('nome');
             $telefone = $request->input('telefone');
             $mensagem = $request->input('mensagem');
-            $whatsappId = $request->input('whatsapp_id'); // ID da mensagem no WhatsApp
 
             // Normalizar telefone
             $telefoneNormalizado = preg_replace('/[^\d+]/', '', $telefone);
@@ -72,7 +71,6 @@ class N8nController extends Controller
                 'conteudo' => $mensagem,
                 'tipo' => 'usuario',
                 'telefone' => $telefoneNormalizado,
-                'whatsapp_id' => $whatsappId,
             ]);
 
             // Obter estatísticas do usuário
@@ -99,7 +97,6 @@ class N8nController extends Controller
                     'id' => $mensagemSalva->id,
                     'conteudo' => $mensagemSalva->conteudo,
                     'tipo' => $mensagemSalva->tipo,
-                    'whatsapp_id' => $mensagemSalva->whatsapp_id,
                     'criada_em' => $mensagemSalva->created_at->format('Y-m-d H:i:s')
                 ],
                 'estatisticas' => $estatisticas,
@@ -128,7 +125,7 @@ class N8nController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * Processar dados de usuário vindos do n8n
      */

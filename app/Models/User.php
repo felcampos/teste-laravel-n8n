@@ -77,6 +77,11 @@ class User extends Authenticatable
         return $this->hasMany(Mensagem::class)->where('tipo', 'ia');
     }
 
+    public function mensagensSystem()
+    {
+        return $this->hasMany(Mensagem::class)->where('tipo', 'system');
+    }
+
     /**
      * Criar ou encontrar usuário por telefone
      */
@@ -109,12 +114,14 @@ class User extends Authenticatable
         $totalMensagens = $this->mensagens()->count();
         $mensagensUsuario = $this->mensagensUsuario()->count();
         $mensagensIA = $this->mensagensIA()->count();
+        $mensagensSystem = $this->mensagensSystem()->count();
         $ultimaMensagem = $this->ultimaMensagem;
         
         return [
             'total_mensagens' => $totalMensagens,
             'mensagens_usuario' => $mensagensUsuario,
             'mensagens_ia' => $mensagensIA,
+            'mensagens_system' => $mensagensSystem,
             'ultima_mensagem_em' => $ultimaMensagem?->created_at,
             'conversa_ativa' => $ultimaMensagem && $ultimaMensagem->created_at->isAfter(now()->subDays(1))
         ];

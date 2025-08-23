@@ -17,12 +17,10 @@ return new class extends Migration
             
             // Conteúdo da mensagem
             $table->text('conteudo');
-            $table->enum('tipo', ['usuario', 'ia']); // Quem enviou a mensagem
+            $table->enum('tipo', ['usuario', 'ia', 'system']); // Quem enviou a mensagem
             
             // Dados do WhatsApp / n8n
-            $table->string('whatsapp_id')->nullable(); // ID da mensagem no WhatsApp
             $table->string('telefone'); // Telefone que enviou/recebeu
-            
             
             $table->timestamps();
             
