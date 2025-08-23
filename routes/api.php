@@ -38,6 +38,9 @@ Route::prefix('n8n')->group(function () {
         
         // Processar mensagem do usuário (criar usuário + salvar mensagem)
         Route::post('/processar-mensagem', [N8nController::class, 'processarMensagem']);
+
+        // Capturar e salvar email do lead
+        Route::post('/capturar-email', [N8nController::class, 'capturarEmail']);
         
         // Verificar se usuário existe por telefone/email
         Route::post('/verificar-usuario', [N8nController::class, 'verificarUsuario']);

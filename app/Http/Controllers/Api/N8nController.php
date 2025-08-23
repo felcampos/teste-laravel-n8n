@@ -125,6 +125,115 @@ class N8nController extends Controller
             ], 500);
         }
     }
+     /**
+    * Capturar e salvar email do lead
+     */
+    public function capturarEmail(Request $request)
+    {
+        try {
+            // Validar dados de entrada
+            $request->validate([
+                'telefone' => 'required|string|max:20',
+                'email' => 'required|email|max:255'
+            ]);
+
+            $telefone = $request->input('telefone');
+            $email = $request->input('email');
+
+            // Normalizar telefone
+            $telefoneNormalizado = preg_replace('/[^\d+]/', '', $telefone);
+            if (!str_starts_with($telefoneNormalizado, '+') && strlen($telefoneNormalizado) === 11) {
+                $telefoneNormalizado = '+55' . $telefoneNormalizado;
+            }
+
+            // Buscar usuário por telefone
+            $usuario = \App\Models\User::where('telefone', $telefoneNormalizado)->first();
+
+            if (!$usuario) {
+                return response()->json([
+                    'status' => 'erro',
+                    'mensagem' => 'Usuário não encontrado com este telefone',
+                    'codigo' => 'USUARIO_NAO_ENCONTRADO',
+                    'telefone_pesquisado' => $telefoneNormalizado
+                ], 404);
+            }
+
+            // Verificar se o email já pertence a outro usuário
+            $usuarioComEmail = \App\Models\User::where('email', $email)
+                ->where('id', '!=', $usuario->id)
+                ->first();
+
+            if ($usuarioComEmail) {
+                return response()->json([
+                    'status' => 'erro',
+                    'mensagem' => 'Este email já está sendo usado por outro usuário',
+                    'codigo' => 'EMAIL_JA_EXISTE',
+                    'email' => $email
+                ], 409);
+            }
+
+            // Salvar informações sobre o email anterior (para log)
+            $emailAnterior = $usuario->email;
+            $emailAlterado = $emailAnterior !== $email;
+
+            // Atualizar email do usuário
+            $usuario->update([
+                'email' => $email,
+                'updated_at' => now()
+            ]);
+
+            // Log da operação
+            Log::info('Email capturado e salvo', [
+                'usuario_id' => $usuario->id,
+                'nome' => $usuario->name,
+                'telefone' => $telefoneNormalizado,
+                'email_anterior' => $emailAnterior,
+                'email_novo' => $email,
+                'email_alterado' => $emailAlterado,
+                'capturado_em' => now()->toISOString()
+            ]);
+
+            return response()->json([
+                'status' => 'sucesso',
+                'mensagem' => $emailAlterado ? 'Email atualizado com sucesso' : 'Email confirmado (mesmo valor)',
+                'usuario' => [
+                    'id' => $usuario->id,
+                    'nome' => $usuario->name,
+                    'telefone' => $usuario->telefone,
+                    'email' => $usuario->email,
+                    'atualizado_em' => $usuario->updated_at->format('Y-m-d H:i:s')
+                ],
+                'alteracoes' => [
+                    'email_anterior' => $emailAnterior,
+                    'email_novo' => $email,
+                    'foi_alterado' => $emailAlterado
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'erro',
+                'mensagem' => 'Dados de entrada inválidos',
+                'codigo' => 'DADOS_INVALIDOS',
+                'erros' => $e->validator->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao capturar email do usuário', [
+                'erro' => $e->getMessage(),
+                'linha' => $e->getLine(),
+                'arquivo' => $e->getFile(),
+                'dados_recebidos' => $request->all()
+            ]);
+
+            return response()->json([
+                'status' => 'erro',
+                'mensagem' => 'Erro interno do servidor',
+                'codigo' => 'ERRO_INTERNO',
+                'detalhes' => config('app.debug') ? $e->getMessage() : 'Erro interno'
+            ], 500);
+        }
+    }
 
     /**
      * Processar dados de usuário vindos do n8n
