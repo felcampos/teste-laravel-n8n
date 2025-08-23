@@ -235,6 +235,114 @@ class N8nController extends Controller
         }
     }
 
+     /**
+     * Salvar mensagem da IA no banco de dados
+     */
+    public function salvarMensagemAI(Request $request)
+    {
+        try {
+            // Validar dados de entrada
+            $request->validate([
+                'nome' => 'sometimes|string|max:255',
+                'telefone' => 'required|string|max:20',
+                'mensagem' => 'required|string'
+            ]);
+
+            $nome = $request->input('nome');
+            $telefone = $request->input('telefone');
+            $mensagem = $request->input('mensagem');
+
+            // Normalizar telefone
+            $telefoneNormalizado = preg_replace('/[^\d+]/', '', $telefone);
+            if (!str_starts_with($telefoneNormalizado, '+') && strlen($telefoneNormalizado) === 11) {
+                $telefoneNormalizado = '+55' . $telefoneNormalizado;
+            }
+
+            // Buscar usuário por telefone
+            $usuario = \App\Models\User::where('telefone', $telefoneNormalizado)->first();
+
+            if (!$usuario) {
+                return response()->json([
+                    'status' => 'erro',
+                    'mensagem' => 'Usuário não encontrado com este telefone',
+                    'codigo' => 'USUARIO_NAO_ENCONTRADO',
+                    'telefone_pesquisado' => $telefoneNormalizado
+                ], 404);
+            }
+
+            // Atualizar nome do usuário se fornecido e diferente
+            if ($nome && $usuario->name !== $nome && !empty($nome)) {
+                $usuario->update(['name' => $nome]);
+                Log::info('Nome do usuário atualizado', [
+                    'usuario_id' => $usuario->id,
+                    'nome_anterior' => $usuario->name,
+                    'nome_novo' => $nome
+                ]);
+            }
+
+            // Salvar mensagem da IA
+            $mensagemSalva = \App\Models\Mensagem::create([
+                'user_id' => $usuario->id,
+                'conteudo' => $mensagem,
+                'tipo' => 'ia',
+                'telefone' => $telefoneNormalizado,
+            ]);
+
+            // Obter estatísticas atualizadas
+            $estatisticas = $usuario->getEstatisticasConversa();
+
+            Log::info('Mensagem da IA salva com sucesso', [
+                'usuario_id' => $usuario->id,
+                'mensagem_id' => $mensagemSalva->id,
+                'telefone' => $telefoneNormalizado,
+                'tamanho_mensagem' => strlen($mensagem),
+                'total_mensagens_ia' => $estatisticas['mensagens_ia']
+            ]);
+
+            return response()->json([
+                'status' => 'sucesso',
+                'mensagem' => 'Mensagem da IA salva com sucesso',
+                'usuario' => [
+                    'id' => $usuario->id,
+                    'nome' => $usuario->name,
+                    'telefone' => $usuario->telefone,
+                    'email' => $usuario->email
+                ],
+                'mensagem_salva' => [
+                    'id' => $mensagemSalva->id,
+                    'conteudo' => $mensagemSalva->conteudo,
+                    'tipo' => $mensagemSalva->tipo,
+                    'criada_em' => $mensagemSalva->created_at->format('Y-m-d H:i:s')
+                ],
+                'estatisticas' => $estatisticas
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'erro',
+                'mensagem' => 'Dados de entrada inválidos',
+                'codigo' => 'DADOS_INVALIDOS',
+                'erros' => $e->validator->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao salvar mensagem da IA', [
+                'erro' => $e->getMessage(),
+                'linha' => $e->getLine(),
+                'arquivo' => $e->getFile(),
+                'dados_recebidos' => $request->all()
+            ]);
+
+            return response()->json([
+                'status' => 'erro',
+                'mensagem' => 'Erro interno do servidor',
+                'codigo' => 'ERRO_INTERNO',
+                'detalhes' => config('app.debug') ? $e->getMessage() : 'Erro interno'
+            ], 500);
+        }
+    }
+
+
     /**
      * Processar dados de usuário vindos do n8n
      */

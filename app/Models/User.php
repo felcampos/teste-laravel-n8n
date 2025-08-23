@@ -79,7 +79,7 @@ class User extends Authenticatable
 
     public function mensagensSystem()
     {
-        return $this->hasMany(Mensagem::class)->where('tipo', 'system');
+        return $this->hasMany(Mensagem::class)->where('tipo', 'sistema');
     }
 
     /**

@@ -39,6 +39,9 @@ Route::prefix('n8n')->group(function () {
         // Processar mensagem do usuário (criar usuário + salvar mensagem)
         Route::post('/processar-mensagem', [N8nController::class, 'processarMensagem']);
 
+        // Salvar mensagem da IA
+        Route::post('/salvar-mensagem-ai', [N8nController::class, 'salvarMensagemAI']);
+
         // Capturar e salvar email do lead
         Route::post('/capturar-email', [N8nController::class, 'capturarEmail']);
         
